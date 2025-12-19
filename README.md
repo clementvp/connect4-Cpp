@@ -25,7 +25,7 @@ Ajoutez dans votre `platformio.ini` :
 
 ```ini
 lib_deps =
-    https://github.com/yourusername/connect4-cpp.git
+    https://github.com/clementvp/connect4-cpp.git
 ```
 
 ## 🚀 Utilisation rapide

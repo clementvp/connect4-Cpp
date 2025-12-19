@@ -12,7 +12,7 @@
 #endif
 
 Connect4::Connect4() 
-    : searchDepth(4), aiPlayer(Player::SECOND), currentPlayer(Player::FIRST) {
+    : searchDepth(4), aiPlayer(Player::SECOND), currentPlayer(Player::FIRST), lastAIMove(-1) {
     // Default: AI is Player::SECOND, search depth is 4
 }
 
@@ -37,6 +37,7 @@ Player Connect4::getAIPlayer() const {
 void Connect4::reset() {
     board.reset();
     currentPlayer = Player::FIRST;
+    lastAIMove = -1;
 }
 
 bool Connect4::playMove(uint8_t column, Player player) {
@@ -61,9 +62,18 @@ bool Connect4::playHumanMove(uint8_t column) {
     return playMove(column, humanPlayer);
 }
 
+bool Connect4::playHumanMoveUser(uint8_t column) {
+    // Convert from user input (1-7) to internal representation (0-6)
+    if (column < 1 || column > 7) {
+        return false;
+    }
+    return playHumanMove(column - 1);
+}
+
 bool Connect4::playAIMove() {
     int8_t move = calculateBestMove();
     if (move >= 0) {
+        lastAIMove = move;
         return playMove(move, aiPlayer);
     }
     return false;
@@ -72,6 +82,7 @@ bool Connect4::playAIMove() {
 bool Connect4::playAIMove(uint8_t depth) {
     int8_t move = calculateBestMove(depth);
     if (move >= 0) {
+        lastAIMove = move;
         return playMove(move, aiPlayer);
     }
     return false;
@@ -130,7 +141,7 @@ Player Connect4::getOpponent(Player player) const {
 }
 
 void Connect4::printBoard() const {
-    PRINTLN("\n  0 1 2 3 4 5 6");
+    PRINTLN("\n  1 2 3 4 5 6 7");
     PRINTLN("  -------------");
     
     // Print from top to bottom (row 5 to 0)
@@ -151,4 +162,22 @@ void Connect4::printBoard() const {
     
     PRINTLN("  -------------");
     PRINTLN("");
+}
+
+int8_t Connect4::getLastAIMove() const {
+    return lastAIMove;
+}
+
+int8_t Connect4::getLastAIMoveUser() const {
+    // Convert from internal (0-6) to user representation (1-7)
+    // Returns 0 if no move has been played yet
+    if (lastAIMove < 0) {
+        return 0;
+    }
+    return lastAIMove + 1;
+}
+
+void Connect4::printAIMove(uint8_t column) const {
+    PRINT("AI played column ");
+    PRINTLN((int)(column + 1));  // Display as 1-7 instead of 0-6
 }

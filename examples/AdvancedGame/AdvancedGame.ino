@@ -31,14 +31,14 @@ void setup() {
   if (aiMove >= 0) {
     game.playMove(aiMove, Player::FIRST);
     Serial.print("AI played column ");
-    Serial.print(aiMove);
+    Serial.print(aiMove + 1);  // Display as 1-7
     Serial.print(" (");
     Serial.print(thinkTime);
     Serial.println(" ms)");
     game.printBoard();
   }
   
-  Serial.println("Your turn! Enter column (0-6):");
+  Serial.println("Your turn! Enter column (1-7):");
 }
 
 void loop() {
@@ -50,9 +50,9 @@ void loop() {
       Serial.read();
     }
     
-    if (column >= 0 && column < 7) {
-      // Human plays as SECOND
-      if (game.playMove(column, Player::SECOND)) {
+    if (column >= 1 && column <= 7) {
+      // Human plays as SECOND (convert from 1-7 to 0-6)
+      if (game.playMove(column - 1, Player::SECOND)) {
         Serial.print("You played column ");
         Serial.println(column);
         game.printBoard();
@@ -88,7 +88,7 @@ void loop() {
         
         if (aiMove >= 0 && game.playMove(aiMove, Player::FIRST)) {
           Serial.print("AI played column ");
-          Serial.print(aiMove);
+          Serial.print(aiMove + 1);  // Display as 1-7
           Serial.print(" (");
           Serial.print(thinkTime);
           Serial.println(" ms)");
@@ -109,7 +109,7 @@ void loop() {
         Serial.println("Invalid move!");
       }
     } else {
-      Serial.println("Invalid input! Enter 0-6");
+      Serial.println("Invalid input! Enter 1-7");
     }
   }
 }

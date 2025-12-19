@@ -1,37 +1,50 @@
 /*
- * Basic Connect4 Game Example
+ * AI First Connect4 Game Example
  * 
- * This example demonstrates how to use the Connect4 library
- * with configurable AI depth and player settings.
+ * This example demonstrates a basic game where AI plays first.
  * 
  * Usage via Serial Monitor:
- * - Enter column number (1-7) to play
- * - AI will respond automatically
+ * - AI makes the first move
+ * - Enter column number (1-7) to respond
+ * - AI will counter automatically
  */
 
 #include <Connect4.h>
 
 Connect4 game;
+bool firstMove = true;
 
 void setup() {
   Serial.begin(115200);
   while (!Serial) delay(10);
   
-  Serial.println("=== Connect 4 Game ===");
+  Serial.println("=== Connect 4 Game - AI Plays First ===");
   Serial.println();
   
-  // Configuration: AI plays second, depth 5
-  game.setAIPlayer(Player::SECOND);
+  // Configuration: AI plays FIRST, depth 5
+  game.setAIPlayer(Player::FIRST);
   game.setSearchDepth(5);
   
-  Serial.print("AI is Player: ");
-  Serial.println(game.getAIPlayer() == Player::FIRST ? "FIRST (X)" : "SECOND (O)");
+  Serial.print("AI is Player: FIRST (X)");
+  Serial.println();
   Serial.print("Search Depth: ");
   Serial.println(game.getSearchDepth());
   Serial.println();
   
-  game.printBoard();
-  Serial.println("Enter column (1-7) to play:");
+  // AI makes first move
+  Serial.println("AI is thinking...");
+  unsigned long startTime = millis();
+  
+  if (game.playAIMove()) {
+    unsigned long thinkTime = millis() - startTime;
+    game.printAIMove(game.getLastAIMove());
+    Serial.print("(");
+    Serial.print(thinkTime);
+    Serial.println(" ms)");
+    game.printBoard();
+  }
+  
+  Serial.println("Your turn! Enter column (1-7):");
 }
 
 void loop() {
@@ -68,7 +81,8 @@ void loop() {
         
         if (game.playAIMove()) {
           unsigned long thinkTime = millis() - startTime;
-          Serial.print("AI played (");
+          game.printAIMove(game.getLastAIMove());
+          Serial.print("(");
           Serial.print(thinkTime);
           Serial.println(" ms)");
           game.printBoard();

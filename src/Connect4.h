@@ -11,6 +11,7 @@ private:
     uint8_t searchDepth;
     Player aiPlayer;
     Player currentPlayer;
+    int8_t lastAIMove;  // Stores the last AI move (-1 if none)
 
 public:
     // Constructor
@@ -32,7 +33,8 @@ public:
     int8_t calculateBestMove();               // Calculate with configured depth
     
     // Helper methods for simplified usage
-    bool playHumanMove(uint8_t column);
+    bool playHumanMove(uint8_t column);          // Internal: column 0-6
+    bool playHumanMoveUser(uint8_t column);      // User-facing: column 1-7
     bool playAIMove();
     bool playAIMove(uint8_t depth);
     
@@ -56,6 +58,11 @@ public:
     
     // Display helper (optional, for debugging)
     void printBoard() const;
+    
+    // AI move information
+    int8_t getLastAIMove() const;           // Internal: Get last AI move 0-6 (-1 if none)
+    int8_t getLastAIMoveUser() const;       // User-facing: Get last AI move 1-7 (0 if none)
+    void printAIMove(uint8_t column) const; // Print AI move information (internal 0-6)
 };
 
 #endif // CONNECT4_H

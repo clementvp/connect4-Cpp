@@ -1,0 +1,30 @@
+# Compiled Object files
+*.o
+*.obj
+
+# Executables
+*.exe
+test_connect4
+
+# Build directories
+build/
+.pio/
+
+# IDE specific
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Arduino/PlatformIO
+.pioenvs
+.piolibdeps
+.clang_complete
+.gcc-flags.json
+
+# Logs
+*.log

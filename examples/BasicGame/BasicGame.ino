@@ -68,7 +68,8 @@ void loop() {
         
         if (game.playAIMove()) {
           unsigned long thinkTime = millis() - startTime;
-          Serial.print("AI played (");
+          game.printAIMove(game.getLastAIMove());
+          Serial.print("(");
           Serial.print(thinkTime);
           Serial.println(" ms)");
           game.printBoard();

@@ -11,85 +11,51 @@
 #define PRINTLN(x) std::cout << x << std::endl
 #endif
 
-Connect4::Connect4() 
-    : searchDepth(4), aiPlayer(Player::SECOND), currentPlayer(Player::FIRST), lastAIMove(-1) {
-    // Default: AI is Player::SECOND, search depth is 4
-}
-
-void Connect4::setSearchDepth(uint8_t depth) {
-    searchDepth = (depth > 0) ? depth : 1;
-}
-
-uint8_t Connect4::getSearchDepth() const {
-    return searchDepth;
-}
-
-void Connect4::setAIPlayer(Player player) {
-    if (player == Player::FIRST || player == Player::SECOND) {
-        aiPlayer = player;
-    }
-}
-
-Player Connect4::getAIPlayer() const {
-    return aiPlayer;
+Connect4::Connect4() {
+    // Simple initialization
 }
 
 void Connect4::reset() {
     board.reset();
-    currentPlayer = Player::FIRST;
-    lastAIMove = -1;
+}
+
+bool Connect4::playMoveInternal(uint8_t column, Player player) {
+    // Internal method using 0-6 indexing
+    if (player == Player::NONE) {
+        return false;
+    }
+    return board.makeMove(column, player);
 }
 
 bool Connect4::playMove(uint8_t column, Player player) {
-    if (board.makeMove(column, player)) {
-        // Toggle current player
-        currentPlayer = (currentPlayer == Player::FIRST) ? Player::SECOND : Player::FIRST;
-        return true;
-    }
-    return false;
-}
-
-int8_t Connect4::calculateBestMove(uint8_t depth) {
-    return ai.calculateBestMove(board, aiPlayer, depth);
-}
-
-int8_t Connect4::calculateBestMove() {
-    return calculateBestMove(searchDepth);
-}
-
-bool Connect4::playHumanMove(uint8_t column) {
-    Player humanPlayer = (aiPlayer == Player::FIRST) ? Player::SECOND : Player::FIRST;
-    return playMove(column, humanPlayer);
-}
-
-bool Connect4::playHumanMoveUser(uint8_t column) {
-    // Convert from user input (1-7) to internal representation (0-6)
+    // User-facing method: convert from 1-7 to internal 0-6
     if (column < 1 || column > 7) {
         return false;
     }
-    return playHumanMove(column - 1);
+    return playMoveInternal(column - 1, player);
 }
 
-bool Connect4::playAIMove() {
-    int8_t move = calculateBestMove();
-    if (move >= 0) {
-        lastAIMove = move;
-        return playMove(move, aiPlayer);
+uint8_t Connect4::calculateBestMove(Player player, uint8_t depth) {
+    // Calculate best move and convert from internal 0-6 to user-facing 1-7
+    if (player == Player::NONE) {
+        return 0;  // Return 0 for error (no valid move)
     }
-    return false;
-}
-
-bool Connect4::playAIMove(uint8_t depth) {
-    int8_t move = calculateBestMove(depth);
-    if (move >= 0) {
-        lastAIMove = move;
-        return playMove(move, aiPlayer);
+    
+    int8_t bestMove = ai.calculateBestMove(board, player, depth);
+    
+    if (bestMove < 0) {
+        return 0;  // Return 0 for error (no valid move)
     }
-    return false;
+    
+    return static_cast<uint8_t>(bestMove + 1);  // Convert 0-6 to 1-7
 }
 
 bool Connect4::isValidMove(uint8_t column) const {
-    return board.isValidMove(column);
+    // User-facing method: convert from 1-7 to internal 0-6
+    if (column < 1 || column > 7) {
+        return false;
+    }
+    return board.isValidMove(column - 1);
 }
 
 bool Connect4::hasWinner() const {
@@ -124,16 +90,6 @@ uint8_t Connect4::getColumnHeight(uint8_t col) const {
     return board.getColumnHeight(col);
 }
 
-Player Connect4::getCurrentPlayer() const {
-    return currentPlayer;
-}
-
-void Connect4::setCurrentPlayer(Player player) {
-    if (player == Player::FIRST || player == Player::SECOND) {
-        currentPlayer = player;
-    }
-}
-
 Player Connect4::getOpponent(Player player) const {
     if (player == Player::FIRST) return Player::SECOND;
     if (player == Player::SECOND) return Player::FIRST;
@@ -162,22 +118,4 @@ void Connect4::printBoard() const {
     
     PRINTLN("  -------------");
     PRINTLN("");
-}
-
-int8_t Connect4::getLastAIMove() const {
-    return lastAIMove;
-}
-
-int8_t Connect4::getLastAIMoveUser() const {
-    // Convert from internal (0-6) to user representation (1-7)
-    // Returns 0 if no move has been played yet
-    if (lastAIMove < 0) {
-        return 0;
-    }
-    return lastAIMove + 1;
-}
-
-void Connect4::printAIMove(uint8_t column) const {
-    PRINT("AI played column ");
-    PRINTLN((int)(column + 1));  // Display as 1-7 instead of 0-6
 }

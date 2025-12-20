@@ -13,25 +13,26 @@ void testBasicGame() {
     printSeparator();
     
     Connect4 game;
-    game.setSearchDepth(5);
-    game.setAIPlayer(Player::SECOND);
     
     cout << "Initial board:" << endl;
     game.printBoard();
     
-    // Human plays column 3
-    cout << "Human plays column 3" << endl;
-    game.playHumanMove(3);
+    // Player 1 plays column 3
+    cout << "Player 1 plays column 3" << endl;
+    game.playMove(3, Player::FIRST);
     game.printBoard();
     
-    // AI responds
+    // AI (Player 2) responds with depth 5
     cout << "AI is thinking..." << endl;
     auto start = chrono::high_resolution_clock::now();
-    game.playAIMove();
+    uint8_t aiMove = game.calculateBestMove(Player::SECOND, 5);
+    if (aiMove > 0) {  // 0 = error, 1-7 = valid move
+        game.playMove(aiMove, Player::SECOND);
+    }
     auto end = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     
-    cout << "AI played (took " << duration.count() << " ms)" << endl;
+    cout << "AI played column " << (int)aiMove << " (took " << duration.count() << " ms)" << endl;
     game.printBoard();
     
     cout << "✓ Test 1 passed!\n" << endl;
@@ -42,16 +43,17 @@ void testAIFirst() {
     printSeparator();
     
     Connect4 game;
-    game.setAIPlayer(Player::FIRST);
-    game.setSearchDepth(6);
     
     cout << "AI plays first (depth 6)..." << endl;
     auto start = chrono::high_resolution_clock::now();
-    game.playAIMove();
+    uint8_t aiMove = game.calculateBestMove(Player::FIRST, 6);
+    if (aiMove > 0) {  // 0 = error, 1-7 = valid move
+        game.playMove(aiMove, Player::FIRST);
+    }
     auto end = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     
-    cout << "AI played (took " << duration.count() << " ms)" << endl;
+    cout << "AI played column " << (int)aiMove << " (took " << duration.count() << " ms)" << endl;
     game.printBoard();
     
     cout << "✓ Test 2 passed!\n" << endl;
@@ -62,18 +64,17 @@ void testFullGame() {
     printSeparator();
     
     Connect4 game;
-    game.setAIPlayer(Player::SECOND);
-    game.setSearchDepth(4);
+    const uint8_t AI_DEPTH = 4;
     
-    cout << "Playing a full game (depth 4)..." << endl;
+    cout << "Playing a full game (AI depth 4)..." << endl;
     
     int moveCount = 0;
     uint8_t humanMoves[] = {3, 2, 4, 1, 3, 2, 3, 4, 3, 2, 3, 5, 3};
     
     while (!game.isGameOver() && moveCount < 13) {
-        // Human move
+        // Human move (Player 1)
         cout << "\nMove " << (moveCount + 1) << ": Human plays column " << (int)humanMoves[moveCount] << endl;
-        game.playHumanMove(humanMoves[moveCount]);
+        game.playMove(humanMoves[moveCount], Player::FIRST);
         game.printBoard();
         
         if (game.hasWinner()) {
@@ -85,14 +86,17 @@ void testFullGame() {
             break;
         }
         
-        // AI move
+        // AI move (Player 2)
         cout << "AI thinking..." << endl;
         auto start = chrono::high_resolution_clock::now();
-        game.playAIMove();
+        uint8_t aiMove = game.calculateBestMove(Player::SECOND, AI_DEPTH);
+        if (aiMove > 0) {  // 0 = error, 1-7 = valid move
+            game.playMove(aiMove, Player::SECOND);
+        }
         auto end = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
         
-        cout << "AI played (took " << duration.count() << " ms)" << endl;
+        cout << "AI played column " << (int)aiMove << " (took " << duration.count() << " ms)" << endl;
         game.printBoard();
         
         if (game.hasWinner()) {
@@ -116,12 +120,11 @@ void testCustomDepth() {
     printSeparator();
     
     Connect4 game;
-    game.setAIPlayer(Player::SECOND);
     
     cout << "Testing different depths..." << endl;
     
     // Human plays
-    game.playHumanMove(3);
+    game.playMove(3, Player::FIRST);
     
     // Test depths 1-7
     for (uint8_t depth = 1; depth <= 7; depth++) {
@@ -129,7 +132,7 @@ void testCustomDepth() {
         
         cout << "\nDepth " << (int)depth << ": ";
         auto start = chrono::high_resolution_clock::now();
-        int8_t move = testGame.calculateBestMove(depth);
+        uint8_t move = testGame.calculateBestMove(Player::SECOND, depth);
         auto end = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
         
@@ -147,13 +150,13 @@ void testBoardDetection() {
     
     // Create a horizontal win for Player FIRST
     cout << "Testing horizontal win detection..." << endl;
-    game.playMove(0, Player::FIRST);
-    game.playMove(0, Player::SECOND);
     game.playMove(1, Player::FIRST);
     game.playMove(1, Player::SECOND);
     game.playMove(2, Player::FIRST);
     game.playMove(2, Player::SECOND);
-    game.playMove(3, Player::FIRST);  // Should win
+    game.playMove(3, Player::FIRST);
+    game.playMove(3, Player::SECOND);
+    game.playMove(4, Player::FIRST);  // Should win
     
     game.printBoard();
     
@@ -189,19 +192,15 @@ void testPerformance() {
     cout << "TEST 6: Performance Benchmark" << endl;
     printSeparator();
     
-    Connect4 game;
-    game.setAIPlayer(Player::FIRST);
-    
     cout << "Benchmarking AI at different depths..." << endl;
-    cout << "\nDepth | Time (ms) | Moves explored" << endl;
-    cout << "------|-----------|----------------" << endl;
+    cout << "\nDepth | Time (ms) | Best Move" << endl;
+    cout << "------|-----------|----------" << endl;
     
     for (uint8_t depth = 1; depth <= 8; depth++) {
         Connect4 testGame;
-        testGame.setAIPlayer(Player::FIRST);
         
         auto start = chrono::high_resolution_clock::now();
-        int8_t move = testGame.calculateBestMove(depth);
+        uint8_t move = testGame.calculateBestMove(Player::FIRST, depth);
         auto end = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
         
@@ -209,6 +208,26 @@ void testPerformance() {
     }
     
     cout << "\n✓ Test 6 passed!\n" << endl;
+}
+
+void testTwoPlayers() {
+    cout << "TEST 7: Two Human Players" << endl;
+    printSeparator();
+    
+    Connect4 game;
+    
+    cout << "Testing two-player mode (no AI)..." << endl;
+    
+    // Simulate alternating human players (columns 1-7)
+    game.playMove(4, Player::FIRST);   // Player 1
+    game.playMove(3, Player::SECOND);  // Player 2
+    game.playMove(4, Player::FIRST);   // Player 1
+    game.playMove(3, Player::SECOND);  // Player 2
+    
+    game.printBoard();
+    
+    cout << "✓ Two players can play independently!" << endl;
+    cout << "✓ Test 7 passed!\n" << endl;
 }
 
 int main() {
@@ -222,6 +241,7 @@ int main() {
         testCustomDepth();
         testBoardDetection();
         testPerformance();
+        testTwoPlayers();
         testFullGame();
         
         printSeparator();

@@ -1,37 +1,32 @@
 /*
- * Basic Connect4 Game Example
+ * Basic Connect4 Game Example - Two Players
  * 
- * This example demonstrates how to use the Connect4 library
- * with configurable AI depth and player settings.
+ * This example demonstrates the basic two-player mode.
+ * Players take turns entering columns to play.
  * 
  * Usage via Serial Monitor:
- * - Enter column number (1-7) to play
- * - AI will respond automatically
+ * - Player 1 (X): Enter column number (1-7) to play
+ * - Player 2 (O): Enter column number (1-7) to play
+ * - Game alternates between players
  */
 
 #include <Connect4.h>
 
 Connect4 game;
+Player currentPlayer = Player::FIRST;
 
 void setup() {
   Serial.begin(115200);
   while (!Serial) delay(10);
   
-  Serial.println("=== Connect 4 Game ===");
+  Serial.println("=== Connect 4 - Two Player Game ===");
   Serial.println();
-  
-  // Configuration: AI plays second, depth 5
-  game.setAIPlayer(Player::SECOND);
-  game.setSearchDepth(5);
-  
-  Serial.print("AI is Player: ");
-  Serial.println(game.getAIPlayer() == Player::FIRST ? "FIRST (X)" : "SECOND (O)");
-  Serial.print("Search Depth: ");
-  Serial.println(game.getSearchDepth());
+  Serial.println("Player 1: X");
+  Serial.println("Player 2: O");
   Serial.println();
   
   game.printBoard();
-  Serial.println("Enter column (1-7) to play:");
+  Serial.println("Player 1 (X) - Enter column (1-7):");
 }
 
 void loop() {
@@ -44,55 +39,42 @@ void loop() {
     }
     
     if (column >= 1 && column <= 7) {
-      // Human move (using user-facing method with columns 1-7)
-      if (game.playHumanMoveUser(column)) {
-        Serial.print("You played column ");
+      // Play move for current player
+      if (game.playMove(column, currentPlayer)) {
+        Serial.print("Player ");
+        Serial.print(currentPlayer == Player::FIRST ? "1" : "2");
+        Serial.print(" played column ");
         Serial.println(column);
         game.printBoard();
         
-        // Check game state after human move
+        // Check game state
         if (game.hasWinner()) {
-          Serial.println("*** YOU WIN! ***");
+          Serial.print("*** PLAYER ");
+          Serial.print(currentPlayer == Player::FIRST ? "1" : "2");
+          Serial.println(" WINS! ***");
           Serial.println("Reset Arduino to play again");
           return;
         }
+        
         if (game.isDraw()) {
           Serial.println("*** DRAW! ***");
           Serial.println("Reset Arduino to play again");
           return;
         }
         
-        // AI move
-        Serial.println("AI is thinking...");
-        unsigned long startTime = millis();
+        // Switch to next player
+        currentPlayer = game.getOpponent(currentPlayer);
         
-        if (game.playAIMove()) {
-          unsigned long thinkTime = millis() - startTime;
-          game.printAIMove(game.getLastAIMove());
-          Serial.print("(");
-          Serial.print(thinkTime);
-          Serial.println(" ms)");
-          game.printBoard();
-          
-          // Check game state after AI move
-          if (game.hasWinner()) {
-            Serial.println("*** AI WINS! ***");
-            Serial.println("Reset Arduino to play again");
-            return;
-          }
-          if (game.isDraw()) {
-            Serial.println("*** DRAW! ***");
-            Serial.println("Reset Arduino to play again");
-            return;
-          }
-          
-          Serial.println("Your turn! Enter column (1-7):");
-        }
+        Serial.print("Player ");
+        Serial.print(currentPlayer == Player::FIRST ? "1" : "2");
+        Serial.print(" (");
+        Serial.print(currentPlayer == Player::FIRST ? "X" : "O");
+        Serial.println(") - Enter column (1-7):");
       } else {
-        Serial.println("Invalid move! Try another column.");
+        Serial.println("Invalid move! Column is full or invalid. Try another column.");
       }
     } else {
-      Serial.println("Invalid input! Enter 1-7");
+      Serial.println("Invalid input! Enter a number between 1-7");
     }
   }
 }
